@@ -1,0 +1,107 @@
+# Training Configuration for Wall-X Robotic Multi-Modal Learning
+# This configuration supports multi-modal learning with vision, language, and action data
+
+# Model and paths configuration
+log_name: "lerobot-training"
+log_project: "wall-oss"
+
+use_fast_tokenizer: false
+resume:
+  ckpt: /data/wall_x/wall-x/pretrained/wall-oss-flow  # 你从huggingface 上下载好的模型
+  try_harder: true
+
+seed: 10233
+model_type: qwen2_5
+pretrained_wallx_path: "/data/wall_x/wall-x/pretrained/Qwen2.5-VL-3B-Instruct"  
+processor_path: "/data/wall_x/wall-x/pretrained/Qwen2.5-VL-3B-Instruct"
+pretrained_qwen_vl_path: "/data/wall_x/wall-x/pretrained/Qwen2.5-VL-3B-Instruct"
+qwen_vl_act_config_path: "/data/wall_x/wall-x/pretrained/wall-oss-flow/config.json"
+
+save_path: "/data/wall_x/wall-x/dataset/libero/lerobot_training_flow" # 保存路径
+
+# Torch Profile
+profile: False
+profile_save_path: ./profile/
+profile_wait_iters: 10
+profile_warmup_iters: 5
+profile_active_iters: 2
+
+# Training hyperparameters
+num_warmup_steps: 1000
+num_training_steps: 100000
+learning_rate: 0.00005
+min_lr: 0.00001
+num_epoch: 15
+gradient_accumulation_steps: 4
+batch_size_per_gpu: 12
+padding_side: left
+epoch_save_interval: 1
+
+# Robot configuration - Define degrees of freedom for each component
+dof_config:
+  master_right_ee_cartesian_pos: 3     # Right end-effector Cartesian position
+  master_right_ee_rotation: 3          # Right end-effector rotation
+  master_right_gripper: 1              # Right gripper control
+
+# Agent proprioception configuration (typically matches DOF config)
+agent_pos_config:
+  follow_right_ee_cartesian_pos: 3
+  follow_right_ee_rotation: 3
+  follow_right_gripper: 1
+
+norm_stats_path: "/data/wall_x/wall-x/action_stats/all_robots_action_stats.json"
+
+enable_customized_robot_config: true
+customized_robot_config:
+  name: "libero_all"
+  customized_dof_config:
+    "action_all" : 7 #To match the total number of degrees of freedom
+
+  customized_agent_pos_config:
+    "state_all" : 7 #To match the total number of degrees of freedom
+
+# Data configuration
+
+FSDP2: False
+torch_compile: False
+
+data:
+  use_lerobot: true
+
+  # LeRobot dataset configuration
+  lerobot_config:
+    repo_id: "libero_all"
+    root: "/data/wall_x/wall-x/datasets/libero_all"
+    episodes: null
+    image_transforms: null
+    delta_timestamps: null
+    tolerance_s: 1e-4
+    revision: null
+    force_cache_sync: false
+    download_videos: true
+    video_backend: null
+
+  action_horizon: 10
+  train_test_split: 0.95
+
+  # Action keys for observation and prediction
+  obs_action_keys:
+    - follow_right_ee_cartesian_pos
+    - follow_right_ee_rotation
+    - follow_right_gripper
+
+  predict_action_keys:
+    - master_right_ee_cartesian_pos
+    - master_right_ee_rotation
+    - master_right_gripper
+
+  # Image resolution configuration for different camera views
+  resolution:
+    face_view: 256
+    left_wrist_view: 256
+    right_wrist_view: 256
+    move1_view: 256
+    move2_view: 256
+    top_view: 256
+    wall_view: 256
+    multi_modal: 256

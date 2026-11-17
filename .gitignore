@@ -1,0 +1,12 @@
+@'
+.mp4
+.zip
+.pt
+.pth
+.ckpt
+.safetensors
+__pycache__
+.venv
+checkpoints
+wandb
+'@  Add-Content .gitignore/wall-x/wall-x/workspace/lerobot_example/evaluation/lerobot_openloop.png
